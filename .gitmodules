@@ -1,0 +1,3 @@
+[submodule "ext/ApiCodec"]
+	path = ext/ApiCodec
+	url = https://github.com/PymZoR/__deprecated__ApiCodec
