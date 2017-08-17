@@ -20,6 +20,8 @@ using namespace std::chrono;
 
 
 Core::Core( ) :
+        lastImageSize{ 4000000 },
+        sdlImageSize{ 752 * 480 * 2 * 3 },
         stopThreadAsked_{ false },
         threadStarted_{ false },
         graphicThread_{ },
@@ -33,16 +35,19 @@ Core::Core( ) :
         ha_odo_packet_ptr_{ nullptr },
         api_post_packet_ptr_{nullptr },
         ha_gps_packet_ptr_{ nullptr },
+        last_images_buffer_(new uint8_t[lastImageSize]),
         controlType_{ ControlType::CONTROL_TYPE_MANUAL },
         last_motor_time_{ 0L },
         imageNaioCodec_{ },
         last_left_motor_{ 0 },
         last_right_motor_{ 0 },
-        last_image_received_time_{ 0 }
+        last_image_received_time_{ 0 },
+        sdl_images_buffer_(new uint8_t[sdlImageSize])
+
 {
     uint8_t fake = 0;
 
-    for ( int i = 0 ; i < 1000000 ; i++ )
+    for ( unsigned int i = 0 ; i < 1000000 ; i++ )
     {
         if( fake >= 255 )
         {
@@ -59,7 +64,6 @@ Core::Core( ) :
 //
 Core::~Core( )
 {
-
 }
 
 // #################################################
@@ -161,12 +165,12 @@ void Core::server_read_thread( )
 {
     std::cout << "Starting server read thread !" << std::endl;
 
-    uint8_t receiveBuffer[ 4000000 ];
+    uint8_t* receiveBuffer = new uint8_t[ lastImageSize ];
 
     while( !stopServerReadThreadAsked_ )
     {
         // any time : read incoming messages.
-        int readSize = (int) read( socket_desc_, receiveBuffer, 4000000 );
+        int readSize = (int) read( socket_desc_, receiveBuffer, lastImageSize );
 
         if (readSize > 0)
         {
@@ -948,12 +952,12 @@ void Core::image_server_read_thread( )
 {
     imageServerReadthreadStarted_ = true;
 
-    uint8_t receiveBuffer[ 4000000 ];
+    uint8_t* receiveBuffer = new uint8_t[ lastImageSize ];
 
     while( !stopImageServerReadThreadAsked_ )
     {
         // any time : read incoming messages.
-        int readSize = (int) read( image_socket_desc_, receiveBuffer, 4000000 );
+        int readSize = (int) read( image_socket_desc_, receiveBuffer, lastImageSize );
 
         if (readSize > 0)
         {
@@ -1018,7 +1022,7 @@ void Core::image_server_write_thread( )
 //
 void Core::image_preparer_thread( )
 {
-    Bytef zlibUncompressedBytes[ 4000000l ];
+    Bytef* zlibUncompressedBytes = new Bytef[ lastImageSize ];
 
     while ( true )
     {

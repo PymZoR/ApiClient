@@ -99,7 +99,11 @@ private:
 	void draw_text( char gyro_buff[100], int x, int y );
 	void draw_red_post( int x, int y );
 	void draw_images( );
+
 private:
+	const uint32_t lastImageSize;
+	const uint32_t sdlImageSize;
+
 	// thread part
 	bool stopThreadAsked_;
 	bool threadStarted_;
@@ -149,7 +153,7 @@ private:
 	std::mutex api_stereo_camera_packet_ptr_access_;
 	ApiStereoCameraPacketPtr api_stereo_camera_packet_ptr_;
 	std::mutex last_images_buffer_access_;
-	uint8_t last_images_buffer_[ 4000000 ];
+	uint8_t* last_images_buffer_;
 	ApiStereoCameraPacket::ImageType last_image_type_;
 
 	// ia part
@@ -193,7 +197,7 @@ private:
 
 	uint64_t last_image_received_time_;
 
-	uint8_t sdl_images_buffer_[ 752 * 480 * 2 * 3 ];
+	uint8_t* sdl_images_buffer_;
 
 };
 
